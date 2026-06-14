@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Alchemyst Agent Console
 
-## Getting Started
+A resilient, real-time interface for AI agents, built to survive hostile network conditions (Chaos Mode) without sacrificing UI/UX fluidity.
 
-First, run the development server:
+## Architectural Approach
+This Agent Console strictly separates transport-layer resilience from React's rendering lifecycle by using a Zustand-powered sequence buffer. Raw WebSocket events are dropped into an O(1) deduplication Map, ensuring the UI only ever processes perfectly ordered events (`lastProcessedSeq + 1`), even if the backend drops or shuffles packets. To prevent layout thrashing during tool execution, token streams are dynamically partitioned into localized inline chunks, allowing tool cards to seamlessly interrupt the text stream without DOM re-calculations.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> **Note:** For a deep dive into the engineering trade-offs, `seq`-based ordering logic, and handling of 50+ concurrent streams, please read [DECISIONS.md](./DECISIONS.md).
+
+## Connection & Stream State Machine
+
+The following diagram illustrates the application's internal state machine, specifically highlighting how it gracefully handles mid-stream network drops and tool call interruptions:
+
+```mermaid
+stateDiagram-v2
+    [*] --> disconnected
+    disconnected --> connecting : Initial Mount
+    connecting --> connected : ws.onopen
+    
+    connected --> streaming : USER_MESSAGE / Script Start
+    
+    state streaming {
+        [*] --> receiving_tokens
+        receiving_tokens --> tool_call_pending : TOOL_CALL
+        tool_call_pending --> receiving_tokens : TOOL_RESULT
+    }
+    
+    streaming --> stream_complete : STREAM_END
+    stream_complete --> connected : Await next turn
+    
+    streaming --> reconnecting : Network Drop (Chaos Mode)
+    connected --> reconnecting : Network Drop
+    
+    reconnecting --> resuming : ws.onopen (Backoff Success)
+    resuming --> streaming : Emit RESUME (lastProcessedSeq)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running the Application Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application consists of the Next.js frontend and the provided mock Agent Server. 
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**1. Start the Agent Server (Backend)**
+Start the provided mock backend using Docker (as per the assignment guidelines):
+```bash
+cd agent-server
+docker build -t agent-server .
 
-## Learn More
+# Normal mode:
+docker run -p 4747:4747 agent-server
 
-To learn more about Next.js, take a look at the following resources:
+# Chaos mode (simulating drops, latency, and out-of-order packets):
+docker run -p 4747:4747 agent-server --mode chaos
+```
+*(Alternatively, if you don't have Docker running locally, you can start the server natively with `npm install` and `npm run dev -- --mode chaos`)*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**2. Start the Agent Console (Frontend)**
+In a new terminal window, return to the project root and start the production build. **(The frontend does NOT use Docker, per the assignment instructions).**
+```bash
+# Install dependencies
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Build and start the production server
+npm run build
+npm run start
+```
+The console will be available at `http://localhost:3000`.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deliverables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 1. Chaos Mode Screen Recording
+The mandatory screen recording demonstrating the frontend surviving Chaos Mode (dropped connections, rapid tools, corrupt heartbeats) can be found here: 
+**[Watch Chaos Mode Demonstration](INSERT_VIDEO_LINK_HERE)**
+
+### 2. Normal Mode Screenshots
+
+**A) Streamed Response & Tool Call**
+*Demonstrates a tool call seamlessly interrupting a token stream without layout shift.*
+![Streamed Response & Tool Call](./screenshots/tool-call.png)
+
+**B) Trace Timeline**
+*Demonstrates batched token rendering and grouped WS events maintaining 60fps.*
+![Trace Timeline](./screenshots/trace-timeline.png)
+
+**C) Context Inspector Diff**
+*Demonstrates the recursive JSON diff engine highlighting newly added context keys in green.*
+![Context Inspector Diff](./screenshots/context-diff.png)
