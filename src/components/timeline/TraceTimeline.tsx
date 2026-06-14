@@ -189,7 +189,7 @@ export function TraceTimeline() {
       <div className="flex-1 overflow-y-auto">
         {groupedEvents.map((group, i) => (
           <EventRow 
-            key={group.type === 'single' ? group.event.id + i : `batch-${group.seqStart}`} 
+            key={group.type === 'single' ? group.event.id + '-' + i : `batch-${group.seqStart}-${i}`} 
             item={group} 
             onScrollTo={scrollToChatElement}
           />
