@@ -2,8 +2,13 @@
 
 import { useAgentStore, ToolCallData, StreamChunk } from '@/store/useAgentStore';
 import { useEffect, useRef } from 'react';
-import { Send, CheckCircle2, Loader2, Wrench, TerminalSquare } from 'lucide-react';
+import { Wrench, TerminalSquare, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 function ToolCard({ tool, onAck }: { tool: ToolCallData, onAck: () => void }) {
   useEffect(() => {
@@ -80,30 +85,69 @@ export function ChatPanel() {
         {messages.map((msg, idx) => {
           if (msg.role === 'user') {
             return (
-              <div key={msg.id || idx} className="flex justify-end">
-                <div className="bg-emerald-600 text-emerald-50 px-4 py-2.5 rounded-2xl rounded-br-sm max-w-[80%] whitespace-pre-wrap shadow-sm">
+              <motion.div 
+                key={msg.id || idx} 
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="flex justify-end"
+              >
+                <div className="bg-emerald-600 text-emerald-50 px-4 py-2.5 rounded-2xl rounded-br-sm max-w-[80%] whitespace-pre-wrap shadow-sm text-sm">
                   {msg.content}
                 </div>
-              </div>
+              </motion.div>
             );
           } else {
             return (
-              <div key={msg.id} className="flex justify-start">
+              <motion.div 
+                key={msg.id} 
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="flex justify-start"
+              >
                 <div className="bg-zinc-900 text-zinc-200 px-4 py-3 rounded-2xl rounded-bl-sm max-w-[85%] border border-zinc-800 shadow-sm leading-relaxed min-w-[200px]">
                   {msg.chunks.map((chunk, cIdx) => {
                     if (chunk.type === 'text') {
                       return (
-                        <span key={cIdx} className="whitespace-pre-wrap">
-                          {chunk.content}
-                        </span>
+                        <div key={cIdx} className="text-sm prose-invert max-w-none break-words my-1">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code({ node, inline, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '')
+                                return !inline && match ? (
+                                  <SyntaxHighlighter
+                                    style={vscDarkPlus as any}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    className="rounded-md border border-zinc-800 text-xs my-2"
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                ) : (
+                                  <code className={clsx("bg-zinc-800/80 text-emerald-300 px-1.5 py-0.5 rounded text-xs", className)} {...props}>
+                                    {children}
+                                  </code>
+                                )
+                              }
+                            }}
+                          >
+                            {chunk.content}
+                          </ReactMarkdown>
+                        </div>
                       );
                     } else if (chunk.type === 'tool') {
                       return (
-                        <ToolCard 
-                          key={chunk.tool.call_id} 
-                          tool={chunk.tool} 
-                          onAck={() => sendToolAck(chunk.tool.call_id)} 
-                        />
+                        <motion.div
+                          key={chunk.tool.call_id}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                        >
+                          <ToolCard 
+                            tool={chunk.tool} 
+                            onAck={() => sendToolAck(chunk.tool.call_id)} 
+                          />
+                        </motion.div>
                       );
                     }
                     return null;
@@ -116,7 +160,7 @@ export function ChatPanel() {
                     <span className="inline-block w-2 h-4 ml-1 bg-emerald-500 animate-pulse align-middle rounded-sm" />
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           }
         })}
