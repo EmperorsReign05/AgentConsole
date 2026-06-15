@@ -4,6 +4,7 @@ import { useAgentStore, TimelineEvent } from '@/store/useAgentStore';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Activity, Clock, Server, ArrowRight, Zap, Database } from 'lucide-react';
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
 
 type GroupedEvent = 
   | { type: 'single'; event: TimelineEvent }
@@ -14,7 +15,11 @@ function EventRow({ item, onScrollTo }: { item: GroupedEvent, onScrollTo: (id: s
 
   if (item.type === 'token_batch') {
     return (
-      <div className="border-b border-zinc-800/50 py-2 px-3 hover:bg-zinc-800/20 transition-colors">
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="border-b border-zinc-800/50 py-2 px-3 hover:bg-zinc-800/20 transition-colors"
+      >
         <div 
           className="flex items-center justify-between cursor-pointer group"
           onClick={() => setExpanded(!expanded)}
@@ -37,7 +42,7 @@ function EventRow({ item, onScrollTo }: { item: GroupedEvent, onScrollTo: (id: s
             {item.text}
           </div>
         )}
-      </div>
+      </motion.div>
     );
   }
 
@@ -86,7 +91,12 @@ function EventRow({ item, onScrollTo }: { item: GroupedEvent, onScrollTo: (id: s
   };
 
   return (
-    <div className="border-b border-zinc-800/50 py-2 px-3 hover:bg-zinc-800/20 transition-colors" id={`timeline-${event.type === 'TOOL_CALL' ? event.data.call_id : event.id}`}>
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="border-b border-zinc-800/50 py-2 px-3 hover:bg-zinc-800/20 transition-colors" 
+      id={`timeline-${event.type === 'TOOL_CALL' ? event.data.call_id : event.id}`}
+    >
       <div 
         className="flex items-center justify-between cursor-pointer group"
         onClick={handleRowClick}
@@ -105,7 +115,7 @@ function EventRow({ item, onScrollTo }: { item: GroupedEvent, onScrollTo: (id: s
           <pre>{JSON.stringify(event.data, null, 2)}</pre>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

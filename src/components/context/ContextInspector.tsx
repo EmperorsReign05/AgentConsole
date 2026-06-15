@@ -4,6 +4,7 @@ import { useAgentStore, ContextSnapshot } from '@/store/useAgentStore';
 import { useState, useMemo } from 'react';
 import { ChevronRight, ChevronDown, Database } from 'lucide-react';
 import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function isObject(val: any) {
   return val !== null && typeof val === 'object';
@@ -88,9 +89,14 @@ function JsonNode({
           {isArray ? `[${keys.length}]` : `{${keys.length}}`}
         </span>
       </div>
-      
+      <AnimatePresence>
       {expanded && (
-        <div className="ml-4 border-l border-zinc-800/50 pl-2 mt-0.5">
+        <motion.div 
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          className="ml-4 border-l border-zinc-800/50 pl-2 mt-0.5 overflow-hidden"
+        >
           {/* Virtualization would be ideal here, but lazy rendering (only rendering when expanded) handles the 500KB requirement sufficiently as long as the user doesn't expand massive arrays all at once. */}
           {keys.length > 500 && !expanded ? (
              <div className="text-zinc-600 italic py-1 text-[10px]">Too many items to render.</div>
@@ -105,8 +111,9 @@ function JsonNode({
               />
             ))
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
