@@ -57,7 +57,7 @@ function EventRow({ item, onScrollTo }: { item: GroupedEvent, onScrollTo: (id: s
     case 'PONG':
       Icon = Clock;
       colorClass = 'text-zinc-500';
-      summary = event.data.challenge || event.data.echo || '';
+      summary = (event.data.challenge as string) || (event.data.echo as string) || '';
       break;
     case 'TOOL_CALL':
       Icon = Zap;
@@ -138,11 +138,11 @@ export function TraceTimeline() {
           const last = currentBatch[currentBatch.length - 1];
           groups.push({
             type: 'token_batch',
-            stream_id: first.data.stream_id,
+            stream_id: first.data.stream_id as string,
             events: currentBatch,
             count: currentBatch.length,
             duration: last.timestamp - first.timestamp,
-            text: currentBatch.map(e => e.data.text).join(''),
+            text: currentBatch.map(e => e.data.text as string).join(''),
             seqStart: first.seq!,
             seqEnd: last.seq!,
           });

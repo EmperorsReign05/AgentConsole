@@ -6,8 +6,8 @@ import { ChevronRight, ChevronDown, Database } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function isObject(val: any) {
-  return val !== null && typeof val === 'object';
+function isObject(val: unknown): val is Record<string, unknown> {
+  return val !== null && typeof val === 'object' && !Array.isArray(val);
 }
 
 function JsonNode({ 
@@ -17,8 +17,8 @@ function JsonNode({
   initiallyExpanded = false 
 }: { 
   name: string; 
-  current: any; 
-  previous: any; 
+  current: unknown; 
+  previous: unknown; 
   initiallyExpanded?: boolean 
 }) {
   const [expanded, setExpanded] = useState(initiallyExpanded);
@@ -50,8 +50,8 @@ function JsonNode({
   const keys = useMemo(() => {
     if (!isParent) return [];
     const k = new Set<string>();
-    if (current) Object.keys(current).forEach(key => k.add(key));
-    if (previous) Object.keys(previous).forEach(key => k.add(key));
+    if (current && typeof current === 'object') Object.keys(current).forEach(key => k.add(key));
+    if (previous && typeof previous === 'object') Object.keys(previous).forEach(key => k.add(key));
     return Array.from(k).sort();
   }, [current, previous, isParent]);
 
@@ -105,8 +105,8 @@ function JsonNode({
               <JsonNode 
                 key={key} 
                 name={key} 
-                current={current ? current[key] : undefined} 
-                previous={previous ? previous[key] : undefined} 
+                current={current ? (current as Record<string, unknown>)[key] : undefined} 
+                previous={previous ? (previous as Record<string, unknown>)[key] : undefined} 
                 initiallyExpanded={false}
               />
             ))

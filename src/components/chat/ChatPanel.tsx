@@ -43,10 +43,12 @@ function ToolCard({ tool, onAck }: { tool: ToolCallData, onAck: () => void }) {
         <span className="text-zinc-500 select-none">args: </span>
         <span className="text-zinc-300">{JSON.stringify(tool.args)}</span>
       </div>
-      {tool.result && (
+      {tool.result !== undefined && tool.result !== null && (
         <div className="px-3 py-2 border-t border-zinc-700/50 text-xs font-mono overflow-x-auto whitespace-pre-wrap bg-zinc-950/50">
           <span className="text-zinc-500 select-none">result: </span>
-          <span className="text-emerald-200/80">{JSON.stringify(tool.result)}</span>
+          <span className="text-emerald-200/80">
+            {typeof tool.result === 'object' ? JSON.stringify(tool.result) : String(tool.result)}
+          </span>
         </div>
       )}
     </div>
@@ -112,11 +114,12 @@ export function ChatPanel() {
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              code({ node, inline, className, children, ...props }: any) {
+                              code({ node, inline, className, children, ...props }: React.HTMLAttributes<HTMLElement> & { node?: unknown, inline?: boolean }) {
                                 const match = /language-(\w+)/.exec(className || '')
                                 return !inline && match ? (
                                   <SyntaxHighlighter
-                                    style={vscDarkPlus as any}
+                                    // @ts-expect-error - react-syntax-highlighter types are incompatible with its own themes
+                                    style={vscDarkPlus}
                                     language={match[1]}
                                     PreTag="div"
                                     className="rounded-md border border-zinc-800 text-xs my-2"

@@ -2,7 +2,7 @@ export type WebSocketStatus = 'disconnected' | 'connecting' | 'connected' | 'rec
 
 export interface WebSocketConfig {
   url: string;
-  onEvent: (event: any) => void;
+  onEvent: (event: Record<string, unknown>) => void;
   onStatusChange: (status: WebSocketStatus) => void;
   getLastSeq: () => number; // So we know what seq to send on RESUME
 }
@@ -44,7 +44,7 @@ export class AgentWebSocketClient {
     this.reconnectAttempts = 0;
   }
 
-  public send(payload: any) {
+  public send(payload: Record<string, unknown>) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(payload));
     } else {

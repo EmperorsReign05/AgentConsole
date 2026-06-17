@@ -50,7 +50,7 @@ describe('useAgentStore - Sequence Deduplication Buffer', () => {
     
     // Prove that the text was concatenated in the perfect mathematical order (A + B + C)
     // even though the packets arrived in C -> B -> A order.
-    const msg = currentState.messages[0] as any;
+    const msg = currentState.messages[0] as Record<string, unknown> & { chunks: any[] };
     expect(msg.chunks[0].content).toBe('ABC');
   });
 
@@ -61,7 +61,7 @@ describe('useAgentStore - Sequence Deduplication Buffer', () => {
     store._handleWsEvent({ type: 'TOOL_CALL', seq: 2, call_id: 't-1', tool_name: 'test', args: {}, stream_id: 'msg-2' });
     
     const currentState = useAgentStore.getState();
-    const msg = currentState.messages[0] as any;
+    const msg = currentState.messages[0] as Record<string, unknown> & { isFrozen: boolean; chunks: any[] };
     
     expect(msg.isFrozen).toBe(true);
     expect(msg.chunks.length).toBe(2); // text chunk, then tool chunk
