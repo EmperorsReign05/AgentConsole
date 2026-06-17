@@ -59,13 +59,13 @@ function JsonNode({
   
   if (!isParent) {
     return (
-      <div className={clsx("flex font-mono text-[11px] py-0.5 px-1 rounded", bgColor)}>
-        <span className="text-zinc-500 mr-2">{name}:</span>
-        <span className={textColor}>
+      <div className={clsx("flex font-mono text-[11px] py-0.5 px-1 rounded items-start", bgColor)}>
+        <span className="text-zinc-500 mr-2 shrink-0">{name}:</span>
+        <span className={clsx("break-all whitespace-pre-wrap", textColor)}>
           {status === 'removed' ? JSON.stringify(previous) : JSON.stringify(current)}
         </span>
         {status === 'changed' && (
-          <span className="text-zinc-500 ml-2 text-[10px]">
+          <span className="text-zinc-500 ml-2 text-[10px] break-all whitespace-pre-wrap">
             (was: {JSON.stringify(previous)})
           </span>
         )}
@@ -78,10 +78,15 @@ function JsonNode({
   return (
     <div className={clsx("font-mono text-[11px] rounded", bgColor)}>
       <div 
-        className="flex items-center cursor-pointer hover:bg-zinc-800/30 py-0.5 px-1 rounded"
+        className={clsx(
+          "flex items-start gap-1 py-0.5 font-mono text-[11px] cursor-pointer hover:bg-zinc-800/40 rounded px-1 -ml-1 transition-colors",
+          status === 'added' ? 'bg-emerald-950/30 text-emerald-400' :
+          status === 'removed' ? 'bg-red-950/30 text-red-400 line-through opacity-60' :
+          status === 'changed' ? 'bg-amber-950/30 text-amber-400' : 'text-zinc-300'
+        )}
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="text-zinc-500 mr-1 w-3">
+        <span className="text-zinc-500 w-3 flex-shrink-0 mt-0.5">
           {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         </span>
         <span className="text-zinc-400">{name}</span>
@@ -155,13 +160,32 @@ export function ContextInspector() {
     <div className="flex flex-col h-full bg-zinc-950/30">
       {/* Header & Scrubber */}
       <div className="p-4 border-b border-zinc-800/50 space-y-4">
+        
+        {/* Context Selector Tabs */}
+        {contextIds.length > 1 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {contextIds.map(id => (
+              <button
+                key={id}
+                onClick={() => { setSelectedId(id); setScrubberIndex(-1); }}
+                className={clsx(
+                  "px-2.5 py-1 rounded-md text-[10px] font-mono whitespace-nowrap transition-colors",
+                  activeId === id ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800"
+                )}
+              >
+                {id}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-zinc-300">
-            <Database className="w-4 h-4 text-purple-400" />
+            <Database className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-semibold truncate max-w-[150px]">{activeId}</span>
           </div>
-          <div className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-1 rounded">
-            Version {effectiveIndex + 1} of {history.length}
+          <div className="text-[10px] border border-zinc-700/50 bg-[#141417] text-zinc-400 px-1.5 py-0.5 rounded-sm font-mono shadow-sm">
+            v{effectiveIndex + 1}/{history.length}
           </div>
         </div>
         
@@ -173,9 +197,9 @@ export function ContextInspector() {
               max={history.length - 1} 
               value={effectiveIndex}
               onChange={handleScrubberChange}
-              className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              className="w-full accent-emerald-500 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
             />
-            <div className="flex justify-between text-[9px] text-zinc-600 font-mono">
+            <div className="flex justify-between text-[9px] text-zinc-500 font-mono uppercase tracking-wider">
               <span>Oldest</span>
               <span>Latest</span>
             </div>
@@ -185,12 +209,14 @@ export function ContextInspector() {
       
       {/* Diff View */}
       <div className="flex-1 overflow-auto p-4">
-        <JsonNode 
-          name="root" 
-          current={currentSnapshot.data} 
-          previous={previousSnapshot?.data} 
-          initiallyExpanded={true} 
-        />
+        <div className="bg-[#0c0c0e] border border-zinc-800/80 rounded-md p-3 shadow-sm">
+          <JsonNode 
+            name="root" 
+            current={currentSnapshot.data} 
+            previous={previousSnapshot?.data} 
+            initiallyExpanded={true} 
+          />
+        </div>
       </div>
     </div>
   );

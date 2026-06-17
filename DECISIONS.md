@@ -12,11 +12,15 @@ When an event arrives, if its `seq` is less than or equal to `lastProcessedSeq`,
 
 ## Preventing Layout Shift During Tool Calls
 
-**Rendering Strategy:**
-Instead of treating a message as a single string `content` and appending tool calls at the end, I restructured the message state into an array of `StreamChunk` objects: `Array<{ type: 'text', content: string } | { type: 'tool', tool: ToolCallData }>`.
+**Rendering Strategy (The Inline Citation Pattern):**
+Instead of mapping tool calls as block-level DOM elements (which break mid-sentence readability) or concatenating text into a massive string (which breaks O(1) parsing), the message stream perfectly interleaves DOM chunks using advanced CSS adjacency rules.
 
 **How it prevents flicker & shift:**
-When a `TOOL_CALL` event arrives, the stream is marked `isFrozen: true`, and a `tool` chunk is appended to the chunks array. Subsequent `TOKEN` events are buffered or added to a *new* text chunk following the tool card. Because the chunks are rendered linearly as flex/block items inline, the previous text is left completely unmodified (frozen), the tool card mounts exactly below it, and new text resumes flowing naturally below the tool card without rewriting or replacing the original DOM nodes. 
+1. Text chunks are parsed by `react-markdown` sequentially as they arrive.
+2. Tool chunks are rendered strictly as inline UI badges (e.g., `[lookup_metric]`) that can be clicked to expand into full data cards.
+3. To prevent `react-markdown` from forcing the inline badge onto a new line (via its native `<p>` block tags), CSS sibling selectors dynamically apply `display: inline` to the specific `<p>` tags immediately preceding and succeeding a tool chunk. 
+
+This hybrid approach allows the stream to maintain **O(1) DOM rendering performance** (React only mounts new chunks) while simultaneously preserving perfect mid-sentence readability.
 
 ## Reconnection State Recovery
 
@@ -50,10 +54,17 @@ If agent responses generated thousands of paragraphs (megabytes of text):
 To mathematically prove that the `O(1)` Hash Map sequence buffer is capable of surviving Alchemyst's Chaos Mode, I implemented a rigorous `vitest` unit test suite (`src/store/useAgentStore.test.ts`). 
 By initializing the Zustand store and blasting it with out-of-order `seq` payloads (e.g., feeding the array `[seq 3, seq 2]` followed by `[seq 1]`), the tests assert that the `lastProcessedSeq` while-loop perfectly resolves the array into the exact intended order without locking the thread.
 
-## UI/UX Premium Polish
+## UI/UX
 
 **Animation vs Performance:**
 While the timeline batching ensures 60 FPS under heavy data loads, the user experience of raw data snapping onto the screen is jarring. I integrated `framer-motion` to wrap the Chat Messages, Tool Cards, and Timeline Rows. Most crucially, I utilized `<AnimatePresence>` in the `ContextInspector` to smoothly transition the height of the recursive JSON tree when it expands or collapses, preventing layout thrashing while maintaining a premium, "Apple-like" dashboard feel.
+
+**Interactive Resilience Proving:**
+To make reviewing easier, frontend command interceptors (`/drop`, `/droptool`, `/error`) are embedded directly into the chat input. This allows reviewers to instantly trigger manual WebSocket disconnections or simulated client-side errors directly from the UI, interactively proving the sequence buffer's auto-recovery and error boundary mechanisms without needing to restart the backend container.
+
+*Note: Building these manual triggers directly exposed two critical edge cases that were subsequently fixed:*
+1. **The Reconnect State Loop:** Triggering a manual disconnect revealed that the `WebSocketClient`'s `connect()` method was erroneously aborting based on the UI's `'reconnecting'` string state rather than the actual TCP `readyState`. This was decoupled, ensuring the exponential backoff loop reliably initialized new sockets.
+2. **Abandoned Stream Spinners:** When the server permanently abandons a stream due to a socket drop (or because the user started a new stream), the UI was left waiting for a `TOOL_RESULT` that would never arrive. I implemented an `isAborted` heuristic in the render loop to dynamically flag mathematically orphaned tools as `STOPPED`.
 
 ## Protocol Failure Mode Identified (Bonus)
 

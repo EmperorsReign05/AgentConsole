@@ -91,6 +91,7 @@ The mandatory screen recording demonstrating the frontend surviving Chaos Mode (
 
 ## Premium Polish
 To demonstrate product empathy, the following premium features have been integrated:
+- **Interactive Resilience Testing:** The chat input intercepts `/drop`, `/droptool`, and `/error` commands, allowing you to manually trigger WebSocket disconnections and client-side errors directly from the UI to observe the auto-recovery in real-time.
 - **Mathematical Unit Tests:** A rigorous Vitest suite (`src/store/useAgentStore.test.ts`) that programmatically blasts the Zustand sequence buffer with out-of-order `seq` packets to mathematically prove the O(1) deduplication logic perfectly resolves chaotic network drops.
 - **Framer Motion Integration:** Instead of jarring layout snaps, UI components (Chat Messages, Tool Cards, Timeline Rows, and Context Inspector Trees) utilize `<AnimatePresence>` and layout animations to slide and fade in buttery-smoothly.
 - **GitHub Flavored Markdown:** The Chat Panel uses `react-markdown` and `react-syntax-highlighter` (VS Code Dark+ theme) to parse agent responses, ensuring code blocks and formatted text look pristine.
