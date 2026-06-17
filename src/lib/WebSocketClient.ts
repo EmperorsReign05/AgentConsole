@@ -21,7 +21,7 @@ export class AgentWebSocketClient {
 
   public connect() {
     this.intentionalDisconnect = false;
-    if (this.ws?.readyState === WebSocket.OPEN || this.status === 'connecting' || this.status === 'reconnecting') {
+    if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
@@ -42,6 +42,13 @@ export class AgentWebSocketClient {
     }
     this.setStatus('disconnected');
     this.reconnectAttempts = 0;
+  }
+
+  public simulateDrop() {
+    if (this.ws) {
+      this.ws.close();
+      // Do not set intentionalDisconnect=true, allowing auto-reconnect to kick in.
+    }
   }
 
   public send(payload: Record<string, unknown>) {

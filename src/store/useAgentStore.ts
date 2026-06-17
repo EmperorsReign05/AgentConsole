@@ -54,6 +54,7 @@ interface AgentState {
   activeContexts: Record<string, ContextSnapshot[]>; 
   initWebSocket: (url: string) => void;
   disconnect: () => void;
+  simulateDrop: () => void;
   sendUserMessage: (content: string) => void;
   sendToolAck: (call_id: string) => void;
   _handleWsEvent: (event: Record<string, unknown>) => void;
@@ -88,6 +89,13 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     const { wsClient } = get();
     if (wsClient) {
       wsClient.disconnect();
+    }
+  },
+
+  simulateDrop: () => {
+    const { wsClient } = get();
+    if (wsClient) {
+      wsClient.simulateDrop();
     }
   },
 
