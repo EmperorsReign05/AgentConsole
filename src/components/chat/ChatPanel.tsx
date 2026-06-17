@@ -229,7 +229,7 @@ export function ChatPanel() {
         <div ref={bottomRef} className="h-4" />
       </div>
 
-      <div className="w-full max-w-3xl mx-auto px-4 pb-6 pt-2 shrink-0 z-10">
+      <div className="w-full max-w-3xl mx-auto px-4 pb-2 pt-2 shrink-0 z-10">
         <form onSubmit={handleSubmit} className="flex gap-2 relative shadow-[0_0_40px_rgba(0,0,0,0.8)] rounded-xl w-full">
           <textarea
             name="message"

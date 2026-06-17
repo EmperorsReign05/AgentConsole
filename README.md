@@ -53,6 +53,13 @@ docker run -p 4747:4747 agent-server --mode chaos
 ```
 *(Alternatively, if you don't have Docker running locally, you can start the server natively with `npm install` and `npm run dev -- --mode chaos`)*
 
+### Testing Chaos Recovery
+Instead of constantly restarting your Docker container to simulate network failures, the UI features built-in **Chaos Interceptors**. 
+While the backend is running in chaos mode, simply type the following commands directly into the Chat input bar:
+- `/drop` — Instantly severs the WebSocket connection, demonstrating the UI's exponential backoff and `RESUME` sequence buffer recovery.
+- `/droptool` — Severs the connection specifically while a tool is executing to prove the decoupled render lifecycle gracefully handles abandoned/replayed tool states.
+- `/error` — Injects a mocked client-side rendering error to demonstrate React error boundaries.
+
 **2. Start the Agent Console (Frontend)**
 In a new terminal window, return to the project root and start the production build. **(The frontend does NOT use Docker, per the assignment instructions).**
 ```bash
