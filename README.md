@@ -78,7 +78,7 @@ The console will be available at `http://localhost:3000`.
 
 ### 1. Chaos Mode Screen Recording
 The mandatory screen recording demonstrating the frontend surviving Chaos Mode (dropped connections, rapid tools, corrupt heartbeats) can be found here: 
-**[Watch Chaos Mode Demonstration](https://drive.google.com/file/d/1gLqFcC7Nkaoxcnx4Dhzvy68_gVJRTthA/view?usp=sharing)**
+**[Watch Chaos Mode Demonstration](https://youtu.be/0KTs-GTpkdw)**
 
 ### 2. Normal Mode Screenshots
 
