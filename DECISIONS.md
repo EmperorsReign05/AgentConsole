@@ -54,3 +54,11 @@ By initializing the Zustand store and blasting it with out-of-order `seq` payloa
 
 **Animation vs Performance:**
 While the timeline batching ensures 60 FPS under heavy data loads, the user experience of raw data snapping onto the screen is jarring. I integrated `framer-motion` to wrap the Chat Messages, Tool Cards, and Timeline Rows. Most crucially, I utilized `<AnimatePresence>` in the `ContextInspector` to smoothly transition the height of the recursive JSON tree when it expands or collapses, preventing layout thrashing while maintaining a premium, "Apple-like" dashboard feel.
+
+## Protocol Failure Mode Identified (Bonus)
+
+**The `TOOL_ACK` Race Condition:**
+I identified a structural race condition in the protocol's `TOOL_ACK` timeout logic. The server expects a `TOOL_ACK` within 5 seconds of sending a `TOOL_CALL`, otherwise it sends the `TOOL_RESULT` anyway. 
+If the network connection drops *exactly* after the server sends `TOOL_CALL`, the 5-second timer on the server continues ticking. If the client takes 6 seconds to reconnect (due to exponential backoff) and sends a `RESUME`, the server replays the `TOOL_CALL`. However, because the server's 5-second timer already expired, it has already generated the `TOOL_RESULT`. 
+When the server replays the missed packets, it will instantly blast both the `TOOL_CALL` and the `TOOL_RESULT` back-to-back. If the client's rendering lifecycle is decoupled from its network layer (e.g., waiting for React to mount the Tool Card before sending the `TOOL_ACK`), the `TOOL_RESULT` arrives before the component is even ready. 
+**Mitigation:** This is exactly why my sequence buffer (`_processBuffer`) resolves the entire chunk of events synchronously in a `while` loop *before* updating React state. By mathematically processing `seq: N` and `seq: N+1` in the same state transaction, the UI instantly mounts the tool card in a "Finished" state, completely bypassing the asynchronous render race condition.

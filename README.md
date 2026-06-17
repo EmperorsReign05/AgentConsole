@@ -71,7 +71,7 @@ The console will be available at `http://localhost:3000`.
 
 ### 1. Chaos Mode Screen Recording
 The mandatory screen recording demonstrating the frontend surviving Chaos Mode (dropped connections, rapid tools, corrupt heartbeats) can be found here: 
-**[Watch Chaos Mode Demonstration](INSERT_VIDEO_LINK_HERE)**
+**[Watch Chaos Mode Demonstration](https://drive.google.com/file/d/1gLqFcC7Nkaoxcnx4Dhzvy68_gVJRTthA/view?usp=sharing)**
 
 ### 2. Normal Mode Screenshots
 
@@ -89,7 +89,7 @@ The mandatory screen recording demonstrating the frontend surviving Chaos Mode (
 
 ---
 
-## Premium Polish (Extra Features)
+## Premium Polish
 To demonstrate product empathy, the following premium features have been integrated:
 - **Mathematical Unit Tests:** A rigorous Vitest suite (`src/store/useAgentStore.test.ts`) that programmatically blasts the Zustand sequence buffer with out-of-order `seq` packets to mathematically prove the O(1) deduplication logic perfectly resolves chaotic network drops.
 - **Framer Motion Integration:** Instead of jarring layout snaps, UI components (Chat Messages, Tool Cards, Timeline Rows, and Context Inspector Trees) utilize `<AnimatePresence>` and layout animations to slide and fade in buttery-smoothly.
