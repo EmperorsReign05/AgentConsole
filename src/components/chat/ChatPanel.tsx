@@ -22,7 +22,7 @@ function ToolCard({ tool, onAck, isAborted }: { tool: ToolCallData, onAck: () =>
 
   if (!expanded) {
     return (
-      <span 
+      <span
         onClick={() => setExpanded(true)}
         className="inline-flex items-center gap-1.5 bg-[#1a1a1e] hover:bg-[#202024] border border-zinc-700/50 text-zinc-300 px-2 py-0.5 rounded-md text-xs font-mono cursor-pointer transition-colors align-middle mx-1 shadow-sm"
         title="Click to view tool execution details"
@@ -42,7 +42,7 @@ function ToolCard({ tool, onAck, isAborted }: { tool: ToolCallData, onAck: () =>
   return (
     <div className="block my-2 w-full">
       <div className="border border-zinc-800/80 rounded-md overflow-hidden bg-[#0c0c0e] shadow-sm max-w-2xl text-sm font-sans relative">
-        <button 
+        <button
           onClick={() => setExpanded(false)}
           className="absolute top-2.5 right-3 text-zinc-500 hover:text-zinc-300 z-10"
           title="Collapse"
@@ -93,7 +93,7 @@ function ToolCard({ tool, onAck, isAborted }: { tool: ToolCallData, onAck: () =>
 export function ChatPanel() {
   const { messages, sendUserMessage, sendToolAck } = useAgentStore();
   const bottomRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -106,7 +106,7 @@ export function ChatPanel() {
     const text = fd.get('message') as string;
     if (text && text.trim()) {
       const command = text.trim();
-      
+
       if (command === '/drop' || command === '/droptool') {
         useAgentStore.getState().simulateDrop();
       } else if (command === '/error') {
@@ -121,7 +121,7 @@ export function ChatPanel() {
       } else {
         sendUserMessage(command);
       }
-      
+
       e.currentTarget.reset();
       const textarea = e.currentTarget.querySelector('textarea');
       if (textarea) textarea.style.height = 'auto';
@@ -136,12 +136,12 @@ export function ChatPanel() {
             Agent active. Awaiting instructions...
           </div>
         )}
-        
+
         {messages.map((msg, idx) => {
           if (msg.role === 'user') {
             return (
-              <motion.div 
-                key={msg.id || idx} 
+              <motion.div
+                key={msg.id || idx}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 className="flex justify-end"
@@ -155,8 +155,8 @@ export function ChatPanel() {
             const isAborted = !msg.isFinished && idx !== messages.length - 1;
 
             return (
-              <motion.div 
-                key={msg.id} 
+              <motion.div
+                key={msg.id}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 className="flex justify-start"
@@ -165,12 +165,12 @@ export function ChatPanel() {
                   {msg.chunks.map((chunk, cIdx) => {
                     if (chunk.type === 'text') {
                       return (
-                        <span 
-                          key={cIdx} 
+                        <span
+                          key={cIdx}
                           className={clsx(
                             "text-sm prose-invert max-w-none break-words",
-                            cIdx < msg.chunks.length - 1 && msg.chunks[cIdx+1].type === 'tool' ? "[&>p:last-child]:inline" : "",
-                            cIdx > 0 && msg.chunks[cIdx-1].type === 'tool' ? "[&>p:first-child]:inline [&>p:first-child]:mt-0" : "",
+                            cIdx < msg.chunks.length - 1 && msg.chunks[cIdx + 1].type === 'tool' ? "[&>p:last-child]:inline" : "",
+                            cIdx > 0 && msg.chunks[cIdx - 1].type === 'tool' ? "[&>p:first-child]:inline [&>p:first-child]:mt-0" : "",
                             "[&>p]:my-2 [&>p:last-child]:mb-0 [&>p:first-child]:mt-0"
                           )}
                         >
@@ -204,17 +204,17 @@ export function ChatPanel() {
                       );
                     } else if (chunk.type === 'tool') {
                       return (
-                        <ToolCard 
-                          key={chunk.tool.call_id} 
-                          tool={chunk.tool} 
-                          onAck={() => sendToolAck(chunk.tool.call_id)} 
+                        <ToolCard
+                          key={chunk.tool.call_id}
+                          tool={chunk.tool}
+                          onAck={() => sendToolAck(chunk.tool.call_id)}
                           isAborted={isAborted}
                         />
                       );
                     }
                     return null;
                   })}
-                  
+
                   {msg.isFrozen && !isAborted && (
                     <span className="inline-block w-2 h-4 ml-1 bg-zinc-500 animate-pulse align-middle rounded-sm" />
                   )}
@@ -243,9 +243,9 @@ export function ChatPanel() {
               }
             }}
             onInput={(e) => {
-               const target = e.target as HTMLTextAreaElement;
-               target.style.height = 'auto';
-               target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
             }}
           />
           <button type="submit" className="bg-zinc-200 hover:bg-white text-zinc-950 rounded-xl px-5 py-3.5 transition-colors flex items-center justify-center font-medium shadow-sm">
